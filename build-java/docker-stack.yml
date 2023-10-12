@@ -1,0 +1,12 @@
+version: '3'
+services:
+  adaptive-cloud-service:
+    image: 10.10.102.198:5500/gczx/gc-iot-cert:release
+    ports:
+      - 8040:8080
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.HOSTNAME == gcjk01-app-docker02
