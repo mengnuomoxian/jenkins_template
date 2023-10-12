@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    environment {
+        DockerRegistry = '10.10.102.198:5500'
+        ServiceName = 'dev_api'
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        timeout(time: 10, unit: 'MINUTES')
+        timestamps()
+    }
+    stages {
+        stage('test') {
+            agent {
+                docker {
+                    image 'webdevops/php-nginx:7.2-alpine'
+                }
+            }
+            steps {
+                script {
+                    echo "开始测试"
+                    sh "chmod +x ./builds/test.sh"
+                    sh "./builds/test.sh"
+                }
+            }
+        }
+        stage('build') {
+            when {
+                anyOf { branch 'release'; buildingTag() }
+            }
+            steps {
+                script {
+                    echo "开始编译"
+                    sh "chmod +x ./builds/build.sh"
+                    sh "./builds/build.sh"
+                }
+            }
+        }
+        stage('deploy') {
+            when {
+                anyOf { branch 'release'; buildingTag()}
+            }
+            steps {
+                script {
+                    echo "开始部署"
+                    sh "chmod +x ./builds/deploy.sh"
+                    sh "./builds/deploy.sh"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh "export"
+            sh "curl -X POST -H \"Content-Type: application/json\" -d '{\"msg_type\":\"text\",\"content\":{\"text\":\"${JOB_NAME}已完成构建，结果：${currentBuild.result}\"}}' https://open.feishu.cn/open-apis/bot/v2/hook/7563be46-ec21-4b6a-9f48-cf482bca570e"
+        }
+    }
+}
