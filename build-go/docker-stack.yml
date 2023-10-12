@@ -1,0 +1,18 @@
+version: '3'
+services:
+  test-go-service:
+    image: 10.10.102.198:5500/health-xxx/test-go-service:release
+    ports:
+      - 8123:8123
+    networks:
+      - ola-cloud-net
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.HOSTNAME == gcjk01-app-docker01
+
+networks:
+  ola-cloud-net:
+    driver: overlay
