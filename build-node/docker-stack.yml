@@ -1,0 +1,12 @@
+version: '3'
+services:
+  adaptive-cloud-service:
+    image: 10.10.102.198:5500/gczx/devplatform_front:release
+    ports:
+      - 8413:8413
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.HOSTNAME == gcjk01-app-docker02
